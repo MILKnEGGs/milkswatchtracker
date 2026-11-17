@@ -40,6 +40,11 @@ body {
   text-align: center;
 }
 
+/* Room to scroll the last row clear of the floating Add button. */
+.page {
+  padding-bottom: calc(160px + env(safe-area-inset-bottom));
+}
+
 .sr {
   position: absolute;
   width: 1px;
@@ -118,6 +123,10 @@ body {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+.item-text > .type-tag {
+  justify-self: start;
 }
 
 .chip.type-chip.on {

@@ -465,7 +465,8 @@ export function shareItem(d: Data, it: Item, withRating = true): ShareItem {
     ty: it.type,
     y: it.year,
     b: it.by,
-    c: it.cover,
+    // Only web links travel; anything else (a pasted data: picture) would bloat the code.
+    c: it.cover?.startsWith('https://') ? it.cover : undefined,
     g: it.genres.length ? it.genres.slice(0, 5) : undefined,
     x: ext,
     w: names.length ? names : undefined,

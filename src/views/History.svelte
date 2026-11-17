@@ -58,7 +58,7 @@
       </div>
       {#if st.byType.length}
         <div class="chips">
-          {#each st.byType as b (b.type)}<span class="chip small-chip type-chip on" data-type={b.type}>{TYPES[b.type].emoji} {b.n} {TYPES[b.type].plural}</span>{/each}
+          {#each st.byType as b (b.type)}<span class="chip small-chip type-chip on" data-type={b.type}>{TYPES[b.type].emoji} {b.n} {b.n === 1 ? TYPES[b.type].label : TYPES[b.type].plural === 'TV' ? 'TV shows' : TYPES[b.type].plural}</span>{/each}
         </div>
       {/if}
       {#if st.top.length}

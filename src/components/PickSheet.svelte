@@ -114,7 +114,7 @@
       </div>
       {#if !spinning}
         <div class="row">
-          <button class="btn primary" style="flex:1" onclick={start}>▶️ Start it</button>
+          <button class="btn primary" style="flex:1;white-space:nowrap" onclick={start}>▶️ Start</button>
           <button class="btn" onclick={roll}>🎲 Another</button>
           <button class="btn ghost" onclick={() => (onclose(), go('i/' + picked!.id))}>Open</button>
         </div>
