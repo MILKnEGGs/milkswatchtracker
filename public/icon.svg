@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f1220"/>
+  <!-- Popcorn bucket -->
+  <path d="M150 210h212l-26 222a20 20 0 0 1-20 18H196a20 20 0 0 1-20-18Z" fill="#e5484d"/>
+  <path d="M196 210l14 240h30l-4-240Zm80 0-4 240h30l14-240Z" fill="#fff4e0"/>
+  <g fill="#f8d77a">
+    <circle cx="176" cy="196" r="42"/>
+    <circle cx="230" cy="166" r="46"/>
+    <circle cx="290" cy="170" r="44"/>
+    <circle cx="338" cy="198" r="40"/>
+    <circle cx="258" cy="120" r="40"/>
+  </g>
+  <g fill="#f2b84b">
+    <circle cx="206" cy="210" r="22"/>
+    <circle cx="300" cy="212" r="22"/>
+    <circle cx="262" cy="150" r="16"/>
+  </g>
+  <!-- Play triangle -->
+  <path d="M232 296v86l70-43Z" fill="#0f1220" opacity="0.85"/>
+</svg>
