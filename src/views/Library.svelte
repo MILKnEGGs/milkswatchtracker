@@ -9,6 +9,7 @@
   import { reorderShown, search, sortItems, STATUS_EMOJI, STATUSES, statusLabel, TYPE_KEYS, TYPES, type SortKey } from '../lib/data';
   import { sortable } from '../lib/sortable';
   import { app, libView as v, save } from '../lib/store.svelte';
+  import type { MediaType } from '../lib/types';
 
   let adding = $state(false);
   let pasting = $state(false);
@@ -19,7 +20,18 @@
   const shown = $derived(sortItems(search(v.status ? byWhere.filter((i) => i.status === v.status) : byWhere, v.q), v.sort));
   const typesHere = $derived(TYPE_KEYS.filter((t) => app.d.items.some((i) => i.type === t)));
   // Hand order lives inside a status, so dragging needs one status picked and no search.
-  const canDrag = $derived(v.sort === 'mine' && !!v.status && !v.q.trim() && shown.length > 1);
+  const canDrag = $derived(v.sort === 'mine' && !!v.status && !v.q.trim());
+  // Grouped by type, in the usual type order. With one type picked there's a single group and no header.
+  const groups = $derived(TYPE_KEYS.map((type) => ({ type, items: shown.filter((i) => i.type === type) })).filter((g) => g.items.length));
+
+  function toggleGroup(t: MediaType) {
+    const i = v.collapsed.indexOf(t);
+    if (i >= 0) v.collapsed.splice(i, 1);
+    else v.collapsed.push(t);
+    try {
+      localStorage.setItem('mwt-lib-collapsed', JSON.stringify(v.collapsed));
+    } catch {}
+  }
 
   const SORTS: { key: SortKey; label: string }[] = [
     { key: 'mine', label: 'My order' },
@@ -81,13 +93,30 @@
     {#if v.sort === 'mine' && !v.status && shown.length > 1}
       <p class="muted small hint">Pick a status above to drag things into your own order.</p>
     {/if}
-    <div class="rows" use:sortable={{ onmove: (a, b) => (reorderShown(shown, a, b), save()) }}>
-      {#each shown as it (it.id)}
-        <div data-sort>
-          <ItemRow item={it} onstep={it.status === 'active' ? stepItem : undefined} handle={canDrag} showStatus={!v.status} showType={!v.type} />
-        </div>
-      {/each}
-    </div>
+    {#each groups as g (g.type)}
+      {@const open = !!v.type || !v.collapsed.includes(g.type)}
+      <section class="type-group" data-type={g.type}>
+        {#if !v.type}
+          <button class="group-head" onclick={() => toggleGroup(g.type)} aria-expanded={open}>
+            <span class="group-emoji" aria-hidden="true">{TYPES[g.type].emoji}</span>
+            {g.type === 'tv' ? 'TV shows' : TYPES[g.type].plural}
+            <span class="count">{g.items.length}</span>
+            <span class="spacer"></span>
+            <span class="chev" class:open>›</span>
+          </button>
+        {/if}
+        {#if open}
+          <!-- One drag area per type, so things can only be dragged within their own group. -->
+          <div class="rows" use:sortable={{ onmove: (a, b) => (reorderShown(g.items, a, b), save()) }}>
+            {#each g.items as it (it.id)}
+              <div data-sort>
+                <ItemRow item={it} onstep={it.status === 'active' ? stepItem : undefined} handle={canDrag && g.items.length > 1} showStatus={!v.status} showType={false} />
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </section>
+    {/each}
   {/if}
 </main>
 

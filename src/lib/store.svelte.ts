@@ -116,10 +116,18 @@ export const isStandalone =
 import type { MediaType, Status } from './types';
 import type { SortKey } from './data';
 
-export const libView = $state<{ type: MediaType | ''; status: Status | ''; sort: SortKey; q: string; where: string }>({
+export const libView = $state<{ type: MediaType | ''; status: Status | ''; sort: SortKey; q: string; where: string; collapsed: MediaType[] }>({
   type: '',
   status: '',
   sort: 'mine',
   q: '',
   where: '',
+  // Folded type groups are remembered on this device (a convenience, so not in the backup).
+  collapsed: (() => {
+    try {
+      return JSON.parse(localStorage.getItem('mwt-lib-collapsed') ?? '[]') as MediaType[];
+    } catch {
+      return [];
+    }
+  })(),
 });

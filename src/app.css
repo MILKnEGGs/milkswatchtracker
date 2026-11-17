@@ -302,6 +302,37 @@ body {
   transform: rotate(90deg);
 }
 
+/* Library groups, one per type. */
+.type-group {
+  display: grid;
+  gap: 8px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 4px 2px;
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--tc) 55%, transparent);
+  background: none;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.group-head .count {
+  color: var(--tc);
+  opacity: 1;
+}
+
+.group-head .chev {
+  color: var(--muted);
+}
+
 .pick-btn {
   border-style: dashed;
   background: transparent;
