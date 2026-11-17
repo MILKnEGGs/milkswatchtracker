@@ -342,7 +342,7 @@ export function stars(r: number): string {
   return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
 }
 
-export const SOURCE_NAME: Record<External['src'], string> = { tvmaze: 'TVmaze', anilist: 'AniList', openlibrary: 'Open Library' };
+export const SOURCE_NAME: Record<External['src'], string> = { tvmaze: 'TVmaze', anilist: 'AniList', openlibrary: 'Open Library', wikipedia: 'Wikipedia' };
 
 // ---------------------------------------------------------------------------------------------
 // Random pick
@@ -550,6 +550,7 @@ export function serviceForNetwork(d: Data, network?: string): string | undefined
   const n = norm(network);
   return d.settings.services.find((s) => {
     const m = norm(s.name);
-    return m && (m === n || n.startsWith(m) || m.startsWith(n));
+    // "Nintendo Switch" matches a service called "Switch"; short names only match exactly.
+    return m && (m === n || n.startsWith(m) || m.startsWith(n) || (m.length >= 4 && n.endsWith(m)));
   })?.id;
 }

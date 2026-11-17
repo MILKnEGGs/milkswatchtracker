@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { addNew, fillTvDetails, inLibrary, onList } from '../lib/actions';
+  import { addNew, fillDetails, inLibrary, onList } from '../lib/actions';
   import { TYPES } from '../lib/data';
   import { canLookup, lookup, LOOKUP_FOR, type LookupResult } from '../lib/lookup';
   import { app, save, toast } from '../lib/store.svelte';
@@ -79,7 +79,7 @@
       added.push(addNew(type, chosen(r) ?? r.line, status, listId));
     }
     save();
-    void fillTvDetails(added.map((i) => i.id));
+    void fillDetails(added.map((i) => i.id));
     toast(`Added ${added.length} ${added.length === 1 ? TYPES[type].label.toLowerCase() : TYPES[type].noun}${listed ? `, put ${listed} you had on the list` : ''} ✓`);
     ondone();
   }

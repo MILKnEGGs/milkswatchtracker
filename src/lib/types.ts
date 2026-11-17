@@ -24,7 +24,7 @@ export interface Progress {
   note?: string;
 }
 
-export type Source = 'tvmaze' | 'anilist' | 'openlibrary';
+export type Source = 'tvmaze' | 'anilist' | 'openlibrary' | 'wikipedia';
 
 export interface External {
   src: Source;
@@ -41,6 +41,12 @@ export interface External {
   runtime?: number;
   /** Where it airs, from TVmaze ("Apple TV", "HBO"). */
   network?: string;
+  /** Wikipedia article title (movies and games). */
+  page?: string;
+  /** Wikidata id behind the article, used for runtime, director and genres. */
+  qid?: string;
+  /** Game platforms from Wikidata ("Nintendo Switch", "PlayStation 5"). */
+  platforms?: string[];
   /** Next episode air date (YYYY-MM-DD) from TVmaze, if one is scheduled. */
   nextAir?: string;
   fetchedAt: number;

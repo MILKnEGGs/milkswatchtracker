@@ -17,8 +17,9 @@ Everything you want to watch, read and play, in one place: TV, anime, movies, bo
   "Paste a recommendation". Copy/paste only, because on iPhone a link would open Safari instead of the installed app.
 
 Lookups need no account or API key: [TVmaze](https://www.tvmaze.com/api) (TV), [AniList](https://anilist.co) (anime, manga),
-[Open Library](https://openlibrary.org/developers/api) (books, comics). Only the title you search for is sent. Movies and games
-are added by hand. Covers are cached by the service worker so they show offline.
+[Open Library](https://openlibrary.org/developers/api) (books, comics), and Wikipedia + Wikidata (movies, games: poster,
+year, runtime, director or studio, genres, platforms; no ratings). Only the title you search for is sent. Covers are cached
+by the service worker so they show offline.
 
 Everything else stays on the device (IndexedDB). It works offline once opened and installs to the Home Screen.
 Settings → Export backup moves everything to another device.

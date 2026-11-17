@@ -131,6 +131,9 @@
     back('library');
   }
 
+  const runtimeText = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? `${m % 60} min` : ''}`.trim() : `${m} min`);
+  const shortPlatform = (p: string) => p.replace(/^(Nintendo|Microsoft|Sony) /, '').replace('PlayStation', 'PS').replace('Windows', 'PC').replace(/ Series X and Series S$/, ' Series X|S');
+
   const fmtDate = (t: number) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const fmtAir = (d: string) => new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   const log10 = $derived(it ? [...it.log].reverse().slice(0, showLog ? undefined : 6) : []);
@@ -151,7 +154,10 @@
       <div class="hero-text">
         <TypeTag type={it.type} />
         <h2 class="hero-title">{it.title}</h2>
-        {#if it.year || it.by}<div class="muted">{[it.year, it.by].filter(Boolean).join(' · ')}</div>{/if}
+        {#if it.year || it.by || (it.type === 'movie' && it.ext?.runtime)}
+          <div class="muted">{[it.year, it.by, it.type === 'movie' && it.ext?.runtime ? runtimeText(it.ext.runtime) : ''].filter(Boolean).join(' · ')}</div>
+        {/if}
+        {#if it.ext?.platforms?.length}<div class="genres">🎮 {it.ext.platforms.slice(0, 5).map(shortPlatform).join(' · ')}</div>{/if}
         {#if it.ext?.rating}
           <a class="ext-rating" href={sourceUrl(it.ext, it.type)} target="_blank" rel="noopener">
             ★ {it.ext.rating.toFixed(1)}<span class="muted small"> /10 on {SOURCE_NAME[it.ext.src]} ↗</span>

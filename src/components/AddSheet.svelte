@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { addNew, fillTvDetails, inLibrary, onList } from '../lib/actions';
+  import { addNew, fillDetails, inLibrary, onList } from '../lib/actions';
   import { TYPE_KEYS, TYPES } from '../lib/data';
   import { takeFocus } from '../lib/keyboard';
   import { canLookup, lookup, LOOKUP_FOR, type LookupResult } from '../lib/lookup';
@@ -127,7 +127,7 @@
       return after(have.id, have.title, false);
     }
     const it = addNew(type, r, status, listId);
-    void fillTvDetails([it.id]);
+    void fillDetails([it.id]);
     after(it.id, it.title, true);
   }
 

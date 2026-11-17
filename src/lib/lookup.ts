@@ -2,7 +2,8 @@
 //   TVmaze      TV shows: covers, ratings, network, episodes per season, next air date
 //   AniList     anime and manga: covers, scores, episode/chapter/volume counts
 //   Open Library books and comics: covers, authors, page counts, ratings
-// Movies and games have no keyless source, so they are typed in by hand.
+//   Wikipedia    movies and games: posters and descriptions, then runtime, director/studio, genres
+//                and platforms from Wikidata. No ratings.
 
 import type { External, MediaType } from './types';
 
@@ -23,6 +24,8 @@ export const LOOKUP_FOR: Partial<Record<MediaType, string>> = {
   manga: 'AniList',
   book: 'Open Library',
   comic: 'Open Library',
+  movie: 'Wikipedia',
+  game: 'Wikipedia',
 };
 
 export const canLookup = (t: MediaType): boolean => t in LOOKUP_FOR;
@@ -41,6 +44,7 @@ export function lookup(type: MediaType, q: string, signal?: AbortSignal): Promis
   if (type === 'tv') return tvmaze(q, signal);
   if (type === 'anime' || type === 'manga') return anilist(type, q, signal);
   if (type === 'book' || type === 'comic') return openLibrary(q, signal);
+  if (type === 'movie' || type === 'game') return wikipedia(type, q, signal);
   return Promise.resolve([]);
 }
 
@@ -48,7 +52,122 @@ export function lookup(type: MediaType, q: string, signal?: AbortSignal): Promis
 export async function refresh(ext: External): Promise<External> {
   if (ext.src === 'tvmaze') return tvmazeDetails(ext);
   if (ext.src === 'anilist') return anilistById(ext);
+  if (ext.src === 'wikipedia') return (await wikiDetails(ext)).ext;
   return ext;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Wikipedia + Wikidata (movies and games)
+//
+// One search request finds articles that use the film or video game infobox and returns their
+// description ("2016 film by Denis Villeneuve") and poster together. Runtime, director or studio,
+// genres and platforms come from Wikidata, fetched only for what you actually add.
+
+// Wikimedia asks apps to say who they are; browsers can't set User-Agent, so this header is the way.
+const WIKI_HEADERS = { 'Api-User-Agent': "Milk's Watch Tracker (https://milkneggs.github.io/milkswatchtracker/)" };
+
+interface WikiPage {
+  title: string;
+  index: number;
+  description?: string;
+  thumbnail?: { source: string };
+  pageprops?: { wikibase_item?: string };
+}
+
+/** "Arrival (film)" → "Arrival", "Hades (video game)" → "Hades", "Dune (2021 film)" → "Dune". */
+const cleanTitle = (t: string) => t.replace(/\s*\((?:\d{4}\s+)?(?:[\w\s-]*\s)?(?:film|video game|game)\)$/i, '');
+
+async function wikipedia(type: 'movie' | 'game', q: string, signal?: AbortSignal): Promise<LookupResult[]> {
+  const infobox = type === 'movie' ? 'Infobox film' : 'Infobox video game';
+  const params = new URLSearchParams({
+    action: 'query',
+    format: 'json',
+    formatversion: '2',
+    origin: '*',
+    generator: 'search',
+    gsrsearch: `${q} hastemplate:"${infobox}"`,
+    gsrlimit: '12',
+    prop: 'description|pageimages|pageprops',
+    piprop: 'thumbnail',
+    pithumbsize: '320',
+    // Posters and box art are non-free images, which Wikipedia leaves out unless asked.
+    pilicense: 'any',
+    ppprop: 'wikibase_item',
+  });
+  const r = await getJson<{ query?: { pages: WikiPage[] } }>(`https://en.wikipedia.org/w/api.php?${params}`, { signal, headers: WIKI_HEADERS });
+  return (r.query?.pages ?? [])
+    .sort((a, b) => a.index - b.index)
+    .map((p) => {
+      const desc = p.description ?? '';
+      const year = Number(desc.match(/^(\d{4})\b/)?.[1]) || undefined;
+      const by = type === 'movie' ? desc.match(/\bfilm by (.+)$/)?.[1] : undefined;
+      return {
+        title: cleanTitle(p.title),
+        year,
+        by,
+        cover: p.thumbnail?.source.replace(/\?utm_.*$/, ''),
+        genres: [],
+        sub: desc,
+        ext: { src: 'wikipedia', id: p.pageprops?.wikibase_item ?? p.title, page: p.title, qid: p.pageprops?.wikibase_item, fetchedAt: Date.now() },
+      } satisfies LookupResult;
+    });
+}
+
+interface WdClaim {
+  mainsnak: { datavalue?: { value: unknown } };
+  rank?: string;
+}
+type WdEntity = { claims?: Record<string, WdClaim[]>; labels?: { en?: { value: string } } };
+
+export interface WikiDetails {
+  ext: External;
+  /** Director(s) for movies, developer(s) for games. */
+  by?: string;
+  genres: string[];
+}
+
+/** Runtime, director or developer, genres and platforms from Wikidata. */
+export async function wikiDetails(ext: External): Promise<WikiDetails> {
+  if (!ext.qid) return { ext, genres: [] };
+  const base = 'https://www.wikidata.org/w/api.php?format=json&origin=*&action=wbgetentities&languages=en';
+  const r = await getJson<{ entities: Record<string, WdEntity> }>(`${base}&props=claims&ids=${ext.qid}`, { headers: WIKI_HEADERS });
+  const claims = r.entities[ext.qid]?.claims ?? {};
+  const values = (p: string) => (claims[p] ?? []).filter((c) => c.rank !== 'deprecated').map((c) => c.mainsnak.datavalue?.value);
+  const ids = (p: string, n: number) =>
+    values(p)
+      .map((v) => (v as { id?: string } | undefined)?.id)
+      .filter((x): x is string => !!x)
+      .slice(0, n);
+
+  // Runtime: an amount with a unit (minutes, or now and then hours).
+  let runtime: number | undefined;
+  const dur = values('P2047')[0] as { amount?: string; unit?: string } | undefined;
+  if (dur?.amount) {
+    const n = Math.abs(Number(dur.amount));
+    runtime = dur.unit?.endsWith('/Q25235') ? Math.round(n * 60) : Math.round(n);
+  }
+
+  const people = [...ids('P57', 2), ...ids('P178', 2)];
+  const genreIds = ids('P136', 4);
+  const platformIds = ids('P400', 8);
+  const all = [...new Set([...people, ...genreIds, ...platformIds])];
+  const labels: Record<string, string> = {};
+  if (all.length) {
+    const l = await getJson<{ entities: Record<string, WdEntity> }>(`${base}&props=labels&ids=${all.join('|')}`, { headers: WIKI_HEADERS });
+    for (const [id, e] of Object.entries(l.entities)) if (e.labels?.en) labels[id] = e.labels.en.value;
+  }
+  const label = (id: string) => labels[id];
+  // Genre labels read like "science fiction film" or "action role-playing game"; keep the genre part.
+  const genres = genreIds
+    .map(label)
+    .filter(Boolean)
+    .map((g) => g.replace(/\s+(film|video game|game)$/i, ''))
+    .map((g) => g.charAt(0).toUpperCase() + g.slice(1));
+  return {
+    ext: { ...ext, runtime: runtime ?? ext.runtime, platforms: platformIds.map(label).filter(Boolean), fetchedAt: Date.now() },
+    by: people.map(label).filter(Boolean).join(', ') || undefined,
+    genres: [...new Set(genres)],
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -239,5 +358,6 @@ async function openLibrary(q: string, signal?: AbortSignal): Promise<LookupResul
 export function sourceUrl(ext: External, type: MediaType): string {
   if (ext.src === 'tvmaze') return `https://www.tvmaze.com/shows/${ext.id}`;
   if (ext.src === 'anilist') return `https://anilist.co/${type === 'anime' ? 'anime' : 'manga'}/${ext.id}`;
+  if (ext.src === 'wikipedia') return `https://en.wikipedia.org/wiki/${encodeURIComponent((ext.page ?? ext.id).replace(/ /g, '_'))}`;
   return `https://openlibrary.org${ext.id}`;
 }

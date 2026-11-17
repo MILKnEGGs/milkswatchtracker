@@ -154,8 +154,9 @@
     <p class="muted small" style="margin:0">
       Covers, ratings and episode counts come from <a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze</a> (TV),
       <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a> (anime, manga) and
-      <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a> (books, comics). No account or key needed; only
-      the titles you search for are sent. Movies and games are added by hand.
+      <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a> (books, comics) and
+      <a href="https://en.wikipedia.org" target="_blank" rel="noopener">Wikipedia</a> (movies, games; posters, runtime, director or studio,
+      no ratings). No account or key needed; only the titles you search for are sent.
     </p>
   </section>
 

@@ -130,6 +130,11 @@ describe('services', () => {
     expect(serviceForNetwork(d, 'Apple TV+')).toBe('a');
     expect(serviceForNetwork(d, 'Netflix')).toBe('n');
     expect(serviceForNetwork(d, 'HBO')).toBeUndefined();
+    // Game platforms from Wikidata.
+    d.settings.services.push({ id: 's', name: 'Switch' }, { id: 'p', name: 'PlayStation' }, { id: 'pc', name: 'PC' });
+    expect(serviceForNetwork(d, 'Nintendo Switch')).toBe('s');
+    expect(serviceForNetwork(d, 'PlayStation 5')).toBe('p');
+    expect(serviceForNetwork(d, 'Microsoft Windows')).toBeUndefined();
   });
 });
 

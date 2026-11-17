@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json' with { type: 'json' };
 
 // Cover art comes from the lookup sites. Keep copies so covers still show offline.
-const COVER_HOSTS = /^https:\/\/(static\.tvmaze\.com|s\d+\.anilist\.co|covers\.openlibrary\.org)\//;
+const COVER_HOSTS = /^https:\/\/(static\.tvmaze\.com|s\d+\.anilist\.co|covers\.openlibrary\.org|upload\.wikimedia\.org)\//;
 
 export default defineConfig({
   // Relative URLs so the same build works at a site root or under a subpath

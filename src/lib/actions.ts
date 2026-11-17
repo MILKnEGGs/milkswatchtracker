@@ -1,9 +1,9 @@
 // Actions shared by several screens: +1, status changes, deleting, with undo toasts.
 
 import { newItem, serviceForNetwork, setStatus, statusLabel, step, TYPES } from './data';
-import { refresh, type LookupResult } from './lookup';
+import { refresh, wikiDetails, type LookupResult } from './lookup';
 import { app, dismissToast, save, toast, toasts } from './store.svelte';
-import type { Item, MediaType, Status } from './types';
+import type { External, Item, MediaType, Status } from './types';
 
 const snap = (it: Item): Item => JSON.parse(JSON.stringify(it));
 
@@ -86,13 +86,28 @@ export function onList(it: Item, listId?: string): void {
   if (list && !list.items.includes(it.id)) list.items.push(it.id);
 }
 
-/** TV episode counts need a second request per show; fetch them one at a time after adding. */
-export async function fillTvDetails(ids: string[]): Promise<void> {
+/**
+ * Details a search doesn't return, fetched one item at a time after adding: TV episode counts, and
+ * runtime, director or studio, genres and platforms for movies and games.
+ */
+export async function fillDetails(ids: string[]): Promise<void> {
   for (const id of ids) {
     const it = app.d.items.find((i) => i.id === id);
-    if (it?.ext?.src !== 'tvmaze' || it.ext.seasons) continue;
+    const ext = it?.ext ? (JSON.parse(JSON.stringify(it.ext)) as External) : undefined;
+    if (!it || !ext) continue;
     try {
-      it.ext = await refresh(JSON.parse(JSON.stringify(it.ext)));
+      if (ext.src === 'tvmaze' && !ext.seasons) it.ext = await refresh(ext);
+      else if (ext.src === 'wikipedia' && ext.qid && !ext.platforms) {
+        const w = await wikiDetails(ext);
+        it.ext = w.ext;
+        it.by ||= w.by;
+        if (!it.genres.length) it.genres = w.genres;
+        // A game on one of your platforms (and only one) gets that platform ticked.
+        if (!it.where.length && w.ext.platforms?.length) {
+          const mine = [...new Set(w.ext.platforms.map((p) => serviceForNetwork(app.d, p)).filter((x): x is string => !!x))];
+          if (mine.length === 1) it.where = mine;
+        }
+      } else continue;
       save();
     } catch {
       return;
