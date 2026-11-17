@@ -390,6 +390,66 @@ body {
   word-break: break-word;
 }
 
+.mode-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.added-count {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.quick-box {
+  min-height: 170px;
+  line-height: 1.5;
+}
+
+.quick-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.quick-row.off {
+  opacity: 0.55;
+}
+
+.quick-row > input[type='checkbox'] {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 10px;
+  accent-color: var(--accent);
+}
+
+.quick-pick {
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.have-note {
+  color: var(--accent);
+}
+
+/* Pinned to the bottom of the sheet so "Add 12" is always in reach. */
+.quick-bar {
+  position: sticky;
+  bottom: -18px;
+  display: flex;
+  gap: 10px;
+  margin: 10px -16px -18px;
+  padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
 .emoji-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);

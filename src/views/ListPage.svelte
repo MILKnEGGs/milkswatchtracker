@@ -9,6 +9,7 @@
   import Sheet from '../components/Sheet.svelte';
   import TopBar from '../components/TopBar.svelte';
   import { stepItem } from '../lib/actions';
+  import { primeKeyboard } from '../lib/keyboard';
   import { move, search, sortItems } from '../lib/data';
   import { sortable } from '../lib/sortable';
   import { app, back, itemById, listById, save, toast } from '../lib/store.svelte';
@@ -83,7 +84,7 @@
         <p class="muted">Nothing on this list yet.</p>
         <div class="row" style="justify-content:center">
           <button class="btn primary" onclick={() => (adding = true)}>From my library</button>
-          <button class="btn" onclick={() => (addingNew = true)}><Icon name="plus" /> Something new</button>
+          <button class="btn" onclick={() => (primeKeyboard(), (addingNew = true))}><Icon name="plus" /> Something new</button>
         </div>
       </div>
     {:else}
@@ -108,7 +109,7 @@
       </div>
       <div class="row">
         <button class="btn" style="flex:1" onclick={() => (adding = true)}>+ From my library</button>
-        <button class="btn" style="flex:1" onclick={() => (addingNew = true)}>+ Something new</button>
+        <button class="btn" style="flex:1" onclick={() => (primeKeyboard(), (addingNew = true))}>+ Something new</button>
       </div>
     {/if}
   </main>

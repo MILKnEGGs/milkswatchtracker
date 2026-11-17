@@ -5,6 +5,7 @@
   import PickSheet from '../components/PickSheet.svelte';
   import TopBar from '../components/TopBar.svelte';
   import { stepItem } from '../lib/actions';
+  import { primeKeyboard } from '../lib/keyboard';
   import { reorderShown, sortItems, TYPE_KEYS, TYPES } from '../lib/data';
   import { sortable } from '../lib/sortable';
   import { app, save } from '../lib/store.svelte';
@@ -38,7 +39,7 @@
       <span class="big-emoji">🍿</span>
       <h2>Welcome to movie night</h2>
       <p class="muted">Add the shows, movies, books, manga, comics and games you want to get to. Keep track of where to find them and how far you are.</p>
-      <button class="btn primary" onclick={() => (adding = true)}><Icon name="plus" /> Add your first one</button>
+      <button class="btn primary" onclick={() => (primeKeyboard(), (adding = true))}><Icon name="plus" /> Add your first one</button>
     </div>
   {:else}
     {#if activeTypes.length > 1}
@@ -88,7 +89,7 @@
 </main>
 
 {#if app.d.items.length}
-  <button class="fab" onclick={() => (adding = true)}><Icon name="plus" /> Add</button>
+  <button class="fab" onclick={() => (primeKeyboard(), (adding = true))}><Icon name="plus" /> Add</button>
 {/if}
 
 {#if adding}<AddSheet onclose={() => (adding = false)} />{/if}

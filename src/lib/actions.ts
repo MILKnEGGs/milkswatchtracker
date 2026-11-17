@@ -1,8 +1,9 @@
 // Actions shared by several screens: +1, status changes, deleting, with undo toasts.
 
-import { setStatus, statusLabel, step, TYPES } from './data';
+import { newItem, serviceForNetwork, setStatus, statusLabel, step, TYPES } from './data';
+import { refresh, type LookupResult } from './lookup';
 import { app, dismissToast, save, toast, toasts } from './store.svelte';
-import type { Item, Status } from './types';
+import type { Item, MediaType, Status } from './types';
 
 const snap = (it: Item): Item => JSON.parse(JSON.stringify(it));
 
@@ -51,6 +52,52 @@ export function deleteItem(it: Item): void {
       save();
     },
   });
+}
+
+/** The library item that came from this lookup result, if you already have it. */
+export const inLibrary = (r: LookupResult): Item | undefined => app.d.items.find((i) => i.ext?.src === r.ext.src && i.ext.id === r.ext.id);
+
+/**
+ * Adds a new item (from a lookup result, or just a title) and puts it on a list if one is given.
+ * Returns the new item. Doesn't save; the caller does, once for a batch.
+ */
+export function addNew(type: MediaType, from: LookupResult | string, status: Status, listId?: string): Item {
+  const it =
+    typeof from === 'string'
+      ? newItem(app.d, { type, title: from, status })
+      : newItem(app.d, {
+          type,
+          title: from.title,
+          year: from.year,
+          by: from.by,
+          cover: from.cover,
+          genres: from.genres,
+          ext: from.ext,
+          where: [serviceForNetwork(app.d, from.ext.network)].filter((x): x is string => !!x),
+          status,
+        });
+  app.d.items.push(it);
+  onList(it, listId);
+  return it;
+}
+
+export function onList(it: Item, listId?: string): void {
+  const list = app.d.lists.find((l) => l.id === listId);
+  if (list && !list.items.includes(it.id)) list.items.push(it.id);
+}
+
+/** TV episode counts need a second request per show; fetch them one at a time after adding. */
+export async function fillTvDetails(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    const it = app.d.items.find((i) => i.id === id);
+    if (it?.ext?.src !== 'tvmaze' || it.ext.seasons) continue;
+    try {
+      it.ext = await refresh(JSON.parse(JSON.stringify(it.ext)));
+      save();
+    } catch {
+      return;
+    }
+  }
 }
 
 /** Writes text to the clipboard, falling back to a hidden textarea for older browsers. */

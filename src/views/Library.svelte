@@ -5,6 +5,7 @@
   import PasteSheet from '../components/PasteSheet.svelte';
   import TopBar from '../components/TopBar.svelte';
   import { stepItem } from '../lib/actions';
+  import { primeKeyboard } from '../lib/keyboard';
   import { reorderShown, search, sortItems, STATUS_EMOJI, STATUSES, statusLabel, TYPE_KEYS, TYPES, type SortKey } from '../lib/data';
   import { sortable } from '../lib/sortable';
   import { app, libView as v, save } from '../lib/store.svelte';
@@ -72,7 +73,7 @@
     <div class="empty">
       <span class="big-emoji">📚</span>
       <p class="muted">Your library is empty. Add something, or paste a recommendation someone sent you.</p>
-      <button class="btn primary" onclick={() => (adding = true)}><Icon name="plus" /> Add</button>
+      <button class="btn primary" onclick={() => (primeKeyboard(), (adding = true))}><Icon name="plus" /> Add</button>
     </div>
   {:else if !shown.length}
     <p class="muted center">Nothing matches.</p>
@@ -90,7 +91,7 @@
   {/if}
 </main>
 
-<button class="fab" onclick={() => (adding = true)}><Icon name="plus" /> Add</button>
+<button class="fab" onclick={() => (primeKeyboard(), (adding = true))}><Icon name="plus" /> Add</button>
 
 {#if adding}<AddSheet onclose={() => (adding = false)} type={v.type || undefined} status={v.status === 'active' ? 'active' : 'want'} />{/if}
 {#if pasting}<PasteSheet onclose={() => (pasting = false)} />{/if}
